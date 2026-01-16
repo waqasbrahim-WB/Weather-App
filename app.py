@@ -1,15 +1,10 @@
 import streamlit as st
 import requests
-import os
 from datetime import datetime
 
 # -------------------------------
 # Utility Functions
 # -------------------------------
-
-def load_groq_api_key():
-    """Load Groq API key securely from environment variables."""
-    return os.getenv("GROQ_API_KEY")
 
 def fetch_weather_data(location="Karachi"):
     """
@@ -46,14 +41,6 @@ def fetch_weather_data(location="Karachi"):
         }
     }
 
-def groq_summary(weather_data):
-    """
-    Dummy Groq API integration.
-    Replace with actual Groq API call using requests.
-    """
-    # Example: summarizing trend
-    return "Expect warmer days ahead with occasional rain mid-week."
-
 # -------------------------------
 # Streamlit UI
 # -------------------------------
@@ -66,12 +53,13 @@ st.sidebar.title("Weather Settings")
 location = st.sidebar.text_input("Enter Location", "Karachi")
 theme = st.sidebar.radio("Theme", ["Dark", "Light"])
 
-# Apply theme (basic simulation)
+# Apply dark theme styling
 if theme == "Dark":
     st.markdown(
         """
         <style>
         body { background-color: #0e1117; color: #fafafa; }
+        .stMetric { background-color: #1c1f26; padding: 10px; border-radius: 8px; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -111,8 +99,11 @@ for i, day in enumerate(weather_data["forecast"]):
 
 # Rain Prediction Intervals
 st.subheader("🌧️ Rain Prediction Intervals")
-for time, chance in weather_data["rain_intervals"].items():
-    st.write(f"{time}: {chance}")
+rain_cols = st.columns(4)
+intervals = list(weather_data["rain_intervals"].items())
+for i, (time, chance) in enumerate(intervals):
+    with rain_cols[i % 4]:
+        st.write(f"{time}: {chance}")
 
 # Global Weather Map
 st.subheader("🌐 Global Weather Map")
@@ -129,12 +120,3 @@ for i, city in enumerate(cities):
         st.write(f"**{city}**")
         st.write(f"🌡️ {city_data['temperature']} °C")
         st.write(f"💧 Humidity: {city_data['humidity']} %")
-
-# Groq Summary
-st.subheader("🤖 AI Weather Insights")
-groq_api_key = load_groq_api_key()
-if groq_api_key:
-    summary = groq_summary(weather_data)
-    st.success(summary)
-else:
-    st.warning("Groq API key not found. Please set GROQ_API_KEY in environment variables.")
